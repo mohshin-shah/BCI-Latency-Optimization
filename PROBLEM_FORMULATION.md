@@ -37,9 +37,9 @@ The optimization problem involves three types of decision variables:
 
 ### Scalarized Multi-Objective Function
 
-\[
+$$
 J(\boldsymbol{\theta}, \boldsymbol{\alpha}, \lambda) = w_L \frac{L(\boldsymbol{\theta}, \boldsymbol{\alpha})}{L_{\max}} + w_E E(\boldsymbol{\theta}, \boldsymbol{\alpha}) + w_C \frac{C(\boldsymbol{\theta}, \lambda)}{C_{\max}}
-\]
+$$
 
 **Weight Configuration**:
 - $w_L = 0.4$ (Latency weight)
@@ -55,14 +55,14 @@ J(\boldsymbol{\theta}, \boldsymbol{\alpha}, \lambda) = w_L \frac{L(\boldsymbol{\
 
 ### 1. Latency Component
 
-\[
+$$
 L(\boldsymbol{\theta}, \boldsymbol{\alpha}) = \beta_0 + \sum_{b=1}^{B} \beta_b\, \phi_b(\boldsymbol{\alpha})
-\]
+$$
 
 **Implementation**:
-\[
+$$
 L(\boldsymbol{\theta}, \boldsymbol{\alpha}) = \beta_0 + \beta_1 \frac{\alpha_0}{64} + \beta_2 \frac{\alpha_1}{500} + \beta_3 \frac{\|\boldsymbol{\theta}\|}{10}
-\]
+$$
 
 **Parameters**:
 - $\beta_0 = 2.0$ (base latency in ms)
@@ -76,14 +76,14 @@ L(\boldsymbol{\theta}, \boldsymbol{\alpha}) = \beta_0 + \beta_1 \frac{\alpha_0}{
 
 ### 2. Classification Error Component
 
-\[
+$$
 E(\boldsymbol{\theta}, \boldsymbol{\alpha}) = \text{base\_error} + \text{complexity\_penalty} - \text{feature\_benefit}
-\]
+$$
 
 **Implementation**:
-\[
+$$
 E(\boldsymbol{\theta}, \boldsymbol{\alpha}) = 0.3 + 0.1 \frac{\|\boldsymbol{\theta}\|}{\sqrt{n_\theta}} - 0.15 \frac{1}{1 + \alpha_0/32}
-\]
+$$
 
 **Components**:
 - Base error: $0.3$ (baseline classification loss)
@@ -97,9 +97,9 @@ E(\boldsymbol{\theta}, \boldsymbol{\alpha}) = 0.3 + 0.1 \frac{\|\boldsymbol{\the
 
 ### 3. Model Complexity Component
 
-\[
+$$
 C(\boldsymbol{\theta}, \lambda) = \|\boldsymbol{\theta}\|_2^2 + \lambda \sum_{j=1}^{n_\theta} \log(\varepsilon + |\theta_j|)
-\]
+$$
 
 **Components**:
 - L2 regularization: $\|\boldsymbol{\theta}\|_2^2$ (prevents large weights)
@@ -115,9 +115,9 @@ C(\boldsymbol{\theta}, \lambda) = \|\boldsymbol{\theta}\|_2^2 + \lambda \sum_{j=
 
 ### 1. Latency Constraint
 
-\[
+$$
 L(\boldsymbol{\theta}, \boldsymbol{\alpha}) \leq \tau_{\max}
-\]
+$$
 
 **Test Case Values**:
 - Real-Time Mode: $\tau_{\max} = 15$ ms
@@ -128,9 +128,9 @@ L(\boldsymbol{\theta}, \boldsymbol{\alpha}) \leq \tau_{\max}
 
 ### 2. Accuracy Constraint
 
-\[
+$$
 E(\boldsymbol{\theta}, \boldsymbol{\alpha}) \leq \ell_{\max}
-\]
+$$
 
 **Test Case Values**:
 - Real-Time Mode: $\ell_{\max} = 0.40$ (60% accuracy)
@@ -141,9 +141,9 @@ E(\boldsymbol{\theta}, \boldsymbol{\alpha}) \leq \ell_{\max}
 
 ### 3. Design Variable Bounds
 
-\[
+$$
 \boldsymbol{\alpha}_{\min} \leq \boldsymbol{\alpha} \leq \boldsymbol{\alpha}_{\max}
-\]
+$$
 
 **Component-wise Bounds**:
 - Feature dimension: $\alpha_0 \in [\alpha_{\min}, \alpha_{\max}]$
@@ -157,9 +157,9 @@ E(\boldsymbol{\theta}, \boldsymbol{\alpha}) \leq \ell_{\max}
 
 ### 4. Regularization Constraint
 
-\[
+$$
 \lambda \ge 0
-\]
+$$
 
 **Physical Meaning**: Regularization parameter must be non-negative to ensure proper penalty behavior.
 
@@ -169,7 +169,7 @@ E(\boldsymbol{\theta}, \boldsymbol{\alpha}) \leq \ell_{\max}
 
 All constraints are converted to inequality form $c_j(x) \leq 0$:
 
-\[
+$$
 \begin{align}
 c_1(x) &= L(\boldsymbol{\theta}, \boldsymbol{\alpha}) - \tau_{\max} \leq 0 \\
 c_2(x) &= E(\boldsymbol{\theta}, \boldsymbol{\alpha}) - \ell_{\max} \leq 0 \\
@@ -177,15 +177,15 @@ c_3(x) &= \alpha_{\min} - \alpha_0 \leq 0 \\
 c_4(x) &= \alpha_0 - \alpha_{\max} \leq 0 \\
 c_5(x) &= -\lambda \leq 0
 \end{align}
-\]
+$$
 
 ### Penalty Function
 
 The constrained problem is reformulated using quadratic penalty:
 
-\[
+$$
 \mathcal{L}_P(x; \boldsymbol{\rho}) = J(x) + \sum_{j=1}^{5} \rho_j [c_j^+(x)]^2
-\]
+$$
 
 where:
 - $c_j^+(x) = \max(0, c_j(x))$: Positive part of constraint violation
@@ -195,9 +195,9 @@ where:
 
 Penalty coefficients are adapted during optimization:
 
-\[
+$$
 \rho_j^{(k)} = \rho_0 \left(1 + 0.1 \cdot k\right)
-\]
+$$
 
 where $k$ is the iteration number and $\rho_0 = 10$ is the base penalty.
 
@@ -207,9 +207,9 @@ where $k$ is the iteration number and $\rho_0 = 10$ is the base penalty.
 
 Methods like SLSQP and trust-constr achieve exact constraint satisfaction:
 
-\[
+$$
 c_j(x^*) \leq \varepsilon_{\text{feas}} \quad \forall j
-\]
+$$
 
 where $\varepsilon_{\text{feas}} = 10^{-4}$ is the feasibility tolerance.
 
@@ -217,9 +217,9 @@ where $\varepsilon_{\text{feas}} = 10^{-4}$ is the feasibility tolerance.
 
 Penalty-based methods (GD, L-BFGS, NCG) achieve practical feasibility:
 
-\[
+$$
 \sum_{j=1}^{5} \max(0, c_j(x^*)) \leq \varepsilon_{\text{prac}}
-\]
+$$
 
 where $\varepsilon_{\text{prac}} = 0.1$ is the practical feasibility threshold.
 
@@ -227,9 +227,9 @@ where $\varepsilon_{\text{prac}} = 0.1$ is the practical feasibility threshold.
 
 ### Default Initialization
 
-\[
+$$
 x_0 = [\boldsymbol{\theta}_0^T, \boldsymbol{\alpha}_0^T, \lambda_0]^T
-\]
+$$
 
 where:
 - $\boldsymbol{\theta}_0 \sim \mathcal{N}(0, 0.1^2)$: Random initialization
@@ -238,7 +238,7 @@ where:
 
 ### Bounds
 
-\[
+$$
 \begin{align}
 \boldsymbol{\theta} &\in [-1, 1]^{n_\theta} \\
 \alpha_0 &\in [\alpha_{\min}, \alpha_{\max}] \\
@@ -246,7 +246,7 @@ where:
 \alpha_2 &\in [5, 30] \\
 \lambda &\in [0, 1]
 \end{align}
-\]
+$$
 
 ## Optimization Problem Summary
 

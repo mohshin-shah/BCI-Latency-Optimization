@@ -34,9 +34,9 @@ The figure above shows the conceptual overview of the optimization problem struc
 
 The optimization objective integrates three components into a scalar cost function:
 
-\[
+$$
 J(\boldsymbol{\theta}, \boldsymbol{\alpha}, \lambda) = w_L \frac{L(\boldsymbol{\theta}, \boldsymbol{\alpha})}{L_{\max}} + w_E E(\boldsymbol{\theta}, \boldsymbol{\alpha}) + w_C \frac{C(\boldsymbol{\theta}, \lambda)}{C_{\max}}
-\]
+$$
 
 where:
 - $\boldsymbol{\theta}$: Model parameters (network weights, classifier coefficients)
@@ -49,9 +49,9 @@ where:
 
 #### Latency Component
 
-\[
+$$
 L(\boldsymbol{\theta}, \boldsymbol{\alpha}) = \beta_0 + \sum_{b=1}^{B} \beta_b\, \phi_b(\boldsymbol{\alpha})
-\]
+$$
 
 where:
 - $\beta_0$: Base latency
@@ -62,9 +62,9 @@ For typical EEG-based BCIs, $L(\boldsymbol{\theta},\boldsymbol{\alpha})$ ranges 
 
 #### Classification Error Component
 
-\[
+$$
 E(\boldsymbol{\theta}, \boldsymbol{\alpha}) = -\frac{1}{N} \sum_{i=1}^{N} \sum_{k=1}^{K} y_{ik} \log p_{ik}(\boldsymbol{\theta}, \boldsymbol{\alpha})
-\]
+$$
 
 where:
 - $y_{ik}$: True class label for sample $i$ and class $k$
@@ -74,9 +74,9 @@ where:
 
 #### Model Complexity Component
 
-\[
+$$
 C(\boldsymbol{\theta}, \lambda) = \|\boldsymbol{\theta}\|_2^2 + \lambda \sum_{j=1}^{n} \log(\varepsilon + |\theta_j|)
-\]
+$$
 
 where:
 - $\|\boldsymbol{\theta}\|_2^2$: L2 regularization term
@@ -88,14 +88,14 @@ where:
 
 The system operates under the following constraints:
 
-\[
+$$
 \begin{align}
 L(\boldsymbol{\theta}, \boldsymbol{\alpha}) &\leq \tau_{\max} \quad \text{(Latency constraint)} \\
 E(\boldsymbol{\theta}, \boldsymbol{\alpha}) &\leq \ell_{\max} \quad \text{(Accuracy constraint)} \\
 \boldsymbol{\alpha}_{\min} \leq \boldsymbol{\alpha} &\leq \boldsymbol{\alpha}_{\max} \quad \text{(Design bounds)} \\
 \lambda &\ge 0 \quad \text{(Regularization constraint)}
 \end{align}
-\]
+$$
 
 ### Constraint Interpretation
 
@@ -110,9 +110,9 @@ E(\boldsymbol{\theta}, \boldsymbol{\alpha}) &\leq \ell_{\max} \quad \text{(Accur
 
 The constrained problem is reformulated using the quadratic penalty function:
 
-\[
+$$
 \mathcal{L}_P(x; \boldsymbol{\rho}) = J(x) + \sum_{j=1}^{4} \rho_j [c_j^+(x)]^2
-\]
+$$
 
 where:
 - $c_j^+(x) = \max(0, c_j(x))$: Positive part of constraint violation
@@ -123,9 +123,9 @@ where:
 
 For more precise constraint handling, the Augmented Lagrangian is:
 
-\[
+$$
 \mathcal{L}_A(x, \boldsymbol{\nu}; \mu) = J(x) + \sum_{j=1}^{5} \nu_j\, c_j^+(x) + \frac{\mu}{2}\sum_{j=1}^{5}\big(c_j^+(x)\big)^2
-\]
+$$
 
 where:
 - $\boldsymbol{\nu}$: Lagrange multipliers
@@ -139,9 +139,9 @@ This formulation combines Lagrange multiplier precision with penalty-based smoot
 
 #### Gradient Descent (GD)
 
-\[
+$$
 x_{k+1} = x_k - \eta_k \nabla \mathcal{L}_P(x_k)
-\]
+$$
 
 - **Complexity**: $O(n)$ per iteration
 - **Convergence**: Linear for convex functions
@@ -149,12 +149,12 @@ x_{k+1} = x_k - \eta_k \nabla \mathcal{L}_P(x_k)
 
 #### Nonlinear Conjugate Gradient (NCG)
 
-\[
+$$
 \begin{align}
 p_k &= -g_k + \beta_k p_{k-1} \\
 \beta_k^{PR+} &= \max\left(0,\frac{g_k^T(g_k - g_{k-1})}{g_{k-1}^T g_{k-1}}\right)
 \end{align}
-\]
+$$
 
 where $g_k = \nabla \mathcal{L}_P(x_k)$.
 
@@ -168,9 +168,9 @@ where $g_k = \nabla \mathcal{L}_P(x_k)$.
 
 Updates Hessian approximation using:
 
-\[
+$$
 B_{k+1} = B_k + \frac{y_k y_k^T}{y_k^T s_k} - \frac{B_k s_k s_k^T B_k}{s_k^T B_k s_k}
-\]
+$$
 
 where $s_k = x_{k+1} - x_k$ and $y_k = \nabla \mathcal{L}_P(x_{k+1}) - \nabla \mathcal{L}_P(x_k)$.
 
@@ -192,12 +192,12 @@ Stores only the last $m$ curvature pairs $(s_i, y_i)$ and computes descent direc
 
 Solves a sequence of quadratic subproblems:
 
-\[
+$$
 \begin{align}
 \min_{d} \quad & \tfrac{1}{2} d^T B_k d + g_k^T d \\
 \text{s.t.}\quad & A_k d + c_k = 0, \quad G_k d + h_k \le 0
 \end{align}
-\]
+$$
 
 - **Complexity**: $O(n^2)$ to $O(n^3)$ per iteration
 - **Convergence**: Fast practical convergence on smooth problems
@@ -207,12 +207,12 @@ Solves a sequence of quadratic subproblems:
 
 Uses trust-region framework with constraint handling:
 
-\[
+$$
 \begin{align}
 \min_{p} \quad & m_k(p) = g_k^T p + \tfrac{1}{2} p^T B_k p \\
 \text{s.t.}\quad & \|p\| \le \Delta_k, \quad c(x_k) + J_k p \approx 0, \quad h(x_k) + H_k p \le 0
 \end{align}
-\]
+$$
 
 where $\Delta_k$ is the trust-region radius.
 
